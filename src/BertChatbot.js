@@ -44,7 +44,7 @@ export default function BertChatbot() {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch("http://ec2-3-35-21-64.ap-northeast-2.compute.amazonaws.com:8000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input }),
