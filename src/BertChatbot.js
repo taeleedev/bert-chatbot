@@ -3,7 +3,13 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import SurveyForm from "./SurveyForm";
 
 export default function BertChatbot() {
-  const [messages, setMessages] = useState([]);
+  
+const sanitize = (str) => {
+  const temp = document.createElement("div");
+  temp.textContent = str;
+  return temp.innerHTML;
+};
+const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [showSurvey, setShowSurvey] = useState(false);
   const endRef = useRef(null);
@@ -32,7 +38,7 @@ export default function BertChatbot() {
     if (!input.trim()) return;
     const userMsg = {
       role: "user",
-      text: input,
+      text: sanitize(input),
       time: formatTime(),
     };
     setMessages((prev) => [...prev, userMsg]);

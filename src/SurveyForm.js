@@ -6,7 +6,14 @@ export default function SurveyForm({ onSubmit }) {
   const [answers, setAnswers] = useState({});
 
   const handleChange = (qid, value) => {
+    
+  if (Array.isArray(surveySchema.find(q => q.id === qid)?.options)) {
+    const index = surveySchema.find(q => q.id === qid).options.indexOf(value);
+    setAnswers((prev) => ({ ...prev, [qid]: index + 1 }));
+  } else {
     setAnswers((prev) => ({ ...prev, [qid]: value }));
+  }
+
   };
 
   const handleSubmit = () => {
