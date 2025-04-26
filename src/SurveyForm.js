@@ -36,17 +36,17 @@ export default function SurveyForm({ onSubmit }) {
           ) : (
             <div className="mt-2 space-y-1">
               {q.options.map((opt, i) => (
-                <label key={i} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name={q.id}
-                    value={opt}
-                    checked={answers[q.id] === opt}
-                    onChange={(e) => handleChange(q.id, e.target.value)}
-                  />
-                  {opt}
-                </label>
-              ))}
+  <label key={i} className="flex items-center gap-2">
+    <input
+      type="radio"
+      name={q.id}
+      value={opt}
+      checked={answers[q.id] === i + 1}
+      onChange={() => handleChange(q.id, opt)}
+    />
+    {opt}
+  </label>
+))}
             </div>
           )}
         </div>

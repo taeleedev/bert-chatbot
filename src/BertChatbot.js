@@ -1,17 +1,17 @@
-
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import SurveyForm from "./SurveyForm";
 
 export default function BertChatbot() {
-  
-const sanitize = (str) => {
-  const temp = document.createElement("div");
-  temp.textContent = str;
-  return temp.innerHTML;
-};
-const [messages, setMessages] = useState([]);
+  const sanitize = (str) => {
+    const temp = document.createElement("div");
+    temp.textContent = str;
+    return temp.innerHTML;
+  };
+
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [showSurvey, setShowSurvey] = useState(false);
+  const [surveyCompleted, setSurveyCompleted] = useState(false); // ✨ 추가
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const [messages, setMessages] = useState([]);
   };
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || surveyCompleted) return; // ✨ 설문 완료 후 전송 차단
     const userMsg = {
       role: "user",
       text: sanitize(input),
@@ -44,13 +44,21 @@ const [messages, setMessages] = useState([]);
     setMessages((prev) => [...prev, userMsg]);
 
     if (["그만", "종료", "고마워"].includes(input.trim())) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: "챗봇이 종료되었습니다. 설문에 참여해주세요 😊",
+          time: formatTime(),
+        },
+      ]);
       setShowSurvey(true);
       setInput("");
       return;
     }
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_BASE}/chat`, {
+      const res = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input }),
@@ -78,11 +86,31 @@ const [messages, setMessages] = useState([]);
   };
 
   const handleSurveySubmit = async (answers) => {
-    await fetch(`${process.env.REACT_APP_API_BASE}/survey`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(answers),
-    });
+    try {
+      await fetch("/survey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(answers),
+      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: "✅ 설문이 성공적으로 제출되었습니다. 감사합니다!",
+          time: formatTime(),
+        },
+      ]);
+      setSurveyCompleted(true); // ✨ 설문 완료 플래그 설정
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          text: "❗ 설문 제출 실패했습니다. 다시 시도해주세요.",
+          time: formatTime(),
+        },
+      ]);
+    }
     setShowSurvey(false);
   };
 
@@ -100,14 +128,29 @@ const [messages, setMessages] = useState([]);
 
   const exitChatbot = () => {
     setShowSurvey(true);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "bot",
+        text: "챗봇이 종료되었습니다. 설문에 참여해주세요 😊",
+        time: formatTime(),
+      },
+    ]);
   };
 
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
-      <h2 className="text-2xl font-semibold mb-4 text-center">🤖 BERT 챗봇</h2>
+      <h2 className="text-2xl font-semibold mb-2 text-center">🤖 BERT 챗봇</h2>
+      <p className="text-sm text-gray-600 text-center mb-4">
+        📝 챗봇을 종료하려면 "그만", "고마워", "종료" 중 하나를 입력해주세요.
+      </p>
       <div className="flex justify-end gap-2 mb-2">
-        <button onClick={clearConversation} className="text-sm text-blue-600 underline">대화 초기화</button>
-        <button onClick={exitChatbot} className="text-sm text-red-600 underline">챗봇 종료</button>
+        <button onClick={clearConversation} className="text-sm text-blue-600 underline">
+          대화 초기화
+        </button>
+        <button onClick={exitChatbot} className="text-sm text-red-600 underline">
+          챗봇 종료
+        </button>
       </div>
       <div className="bg-white border overflow-y-auto h-[400px] p-4 rounded shadow">
         {messages.map((msg, i) => (
@@ -164,8 +207,10 @@ const [messages, setMessages] = useState([]);
             onChange={(e) => setInput(e.target.value)}
             placeholder="메시지를 입력하세요..."
             className="flex-1 border rounded px-3 py-2"
+            disabled={surveyCompleted}
           />
           <button
+            disabled={surveyCompleted}
             onClick={sendMessage}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
