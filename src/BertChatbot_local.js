@@ -59,7 +59,7 @@ export default function BertChatbot() {
     }
 
     try {
-      const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: input }) });
+      const res = await fetch("http://127.0.0.1:8000/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: input }) });
       const data = await res.json();
       const botMsg = { role: "bot", text: data.best_answer, confidence: data.confidence, suggestions: data.best_answer === "We couldn't find a sufficiently relevant answer to your inquiry." ? [] : data.suggestions || [], time: formatTime() };
       setMessages((prev) => [...prev, botMsg]);
@@ -71,7 +71,7 @@ export default function BertChatbot() {
   };
 
   const handleSurveySubmit = async (answers) => {
-    await fetch("/survey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(answers) });
+    await fetch("http://127.0.0.1:8000/survey", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(answers) });
     alert("설문이 성공적으로 제출되었습니다. 감사합니다!");
     setShowSurvey(false);
     setSurveyCompleted(true);
